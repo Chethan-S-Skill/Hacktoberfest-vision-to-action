@@ -6,7 +6,7 @@ from database import DatabaseService
 
 
 def test_database_crud_flow():
-    db = DatabaseService()
+    db = DatabaseService(force_local=True)
     test_user_id = "test-user-isolation-01"
     
     # 1. Save an analysis

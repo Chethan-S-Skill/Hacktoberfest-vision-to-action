@@ -294,7 +294,14 @@ class AIEngine:
         if response.status_code == 429:
             raise RuntimeError("Sarvam API rate limit exceeded. Please wait a moment.")
         if response.status_code != 200:
-            raise RuntimeError(f"API request failed with HTTP {response.status_code}: {response.text[:200]}")
+            err_text = response.text
+            if "Input 'sarvam-gemma-4' should be one of" in err_text or "gemma-4" in err_text:
+                raise RuntimeError(
+                    "Gemma 4 Vision is currently in restricted beta on Sarvam AI. "
+                    "Your account has access to: 'sarvam-105b-conversations'. "
+                    "Per project rules, we do not falsely claim another model processed the image."
+                )
+            raise RuntimeError(f"Sarvam API error (HTTP {response.status_code}): {err_text[:200]}")
 
         res_json = response.json()
         raw_content = ""

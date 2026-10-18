@@ -32,13 +32,14 @@ def get_supabase_client() -> Optional[Client]:
 
 
 class AuthService:
-    def __init__(self):
+    def __init__(self, force_demo: bool = False):
         self.config = get_config()
-        self.client = get_supabase_client()
+        self.force_demo = force_demo
+        self.client = None if force_demo else get_supabase_client()
 
     @property
     def is_live(self) -> bool:
-        return self.client is not None
+        return self.client is not None and not self.force_demo
 
     def sign_up(self, email: str, password: str) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         """Registers a new user with Supabase Auth."""

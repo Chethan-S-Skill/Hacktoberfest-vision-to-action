@@ -6,7 +6,7 @@ from auth import AuthService
 
 
 def test_auth_validation_rules():
-    auth = AuthService()
+    auth = AuthService(force_demo=True)
 
     # Invalid email
     ok, msg, user = auth.sign_up("invalid-email", "secret123")
@@ -20,7 +20,7 @@ def test_auth_validation_rules():
 
 
 def test_demo_auth_flow():
-    auth = AuthService()
+    auth = AuthService(force_demo=True)
     ok, msg, user = auth.sign_in("demo@test.com", "validpassword")
     assert ok is True
     assert user is not None

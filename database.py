@@ -17,15 +17,16 @@ LOCAL_DB_FILE = os.path.join("temp_images", "local_history.json")
 
 
 class DatabaseService:
-    def __init__(self):
+    def __init__(self, force_local: bool = False):
         self.config = get_config()
-        self.client = get_supabase_client()
+        self.force_local = force_local
+        self.client = None if force_local else get_supabase_client()
         self.storage = StorageService()
         self._init_local_db()
 
     @property
     def is_live(self) -> bool:
-        return self.client is not None
+        return self.client is not None and not self.force_local
 
     def _init_local_db(self):
         if not os.path.exists("temp_images"):
