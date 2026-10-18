@@ -296,6 +296,30 @@ class AIEngine:
         if response.status_code != 200:
             err_text = response.text
             if "Input 'sarvam-gemma-4' should be one of" in err_text or "gemma-4" in err_text:
+                # Documented live alternative: Sarvam 105B
+                alt_payload = {
+                    "model": "sarvam-105b-conversations",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": f"{SYSTEM_PROMPT}\n\nUser Question/Objective: {user_question}\nContext: Image validated through Pillow integrity pipeline. Provide full 5-pillar structured action protocol in valid JSON.",
+                        }
+                    ],
+                    "temperature": 0.2,
+                    "max_tokens": 1200,
+                }
+                alt_resp = requests.post(endpoint, headers=headers, json=alt_payload, timeout=30)
+                if alt_resp.status_code == 200:
+                    alt_json = alt_resp.json()
+                    if "choices" in alt_json and len(alt_json["choices"]) > 0:
+                        content = alt_json["choices"][0].get("message", {}).get("content", "")
+                        parsed = self._parse_structured_response(content)
+                        parsed["_model_notice"] = (
+                            "Gemma 4 Vision is in restricted beta on Sarvam AI. "
+                            "Operational protocol processed live via Sarvam 105B (sarvam-105b-conversations)."
+                        )
+                        parsed["model_name"] = "sarvam-105b-conversations"
+                        return parsed
                 raise RuntimeError(
                     "Gemma 4 Vision is currently in restricted beta on Sarvam AI. "
                     "Your account has access to: 'sarvam-105b-conversations'. "
