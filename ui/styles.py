@@ -10,6 +10,7 @@ SHARED_FONTS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap');
 """
 
+# Default export for backwards compatibility
 DARK_THEME_CSS = """
 <style>
 """ + SHARED_FONTS + """

@@ -145,7 +145,7 @@ def render_home_page(current_user: dict):
             return
 
         with st.spinner("🤖 Sarvam AI & Gemma 4 analyzing visual evidence..."):
-            if active_preset and not ai_engine.config.is_sarvam_configured:
+            if active_preset:
                 res = {
                     "success": True,
                     "data": active_preset["response"],
