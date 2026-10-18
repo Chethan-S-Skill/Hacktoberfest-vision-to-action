@@ -4,7 +4,7 @@ Production-grade visual AI assistant bridging image understanding and safe physi
 """
 
 import streamlit as st
-from ui.styles import PRO_CSS
+from ui.styles import get_theme_css
 from ui.components import render_header
 from ui.pages.home import render_home_page
 from ui.pages.history import render_history_page
@@ -21,8 +21,11 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# 2. Inject Pro Cyber-Industrial Design System
-st.markdown(PRO_CSS, unsafe_allow_html=True)
+# 2. Dynamic Theme Injection
+if "current_theme" not in st.session_state:
+    st.session_state["current_theme"] = "Cyber Dark Navy"
+
+st.markdown(get_theme_css(st.session_state["current_theme"]), unsafe_allow_html=True)
 
 
 def init_session():
@@ -31,6 +34,8 @@ def init_session():
         st.session_state["user"] = None
     if "active_page" not in st.session_state:
         st.session_state["active_page"] = "Home / Analyze"
+    if "current_theme" not in st.session_state:
+        st.session_state["current_theme"] = "Cyber Dark Navy"
 
 
 def render_auth_screen(auth_svc: AuthService):
@@ -57,6 +62,25 @@ def render_auth_screen(auth_svc: AuthService):
 
     auth_col1, auth_col2, auth_col3 = st.columns([1, 2, 1])
     with auth_col2:
+        current_idx = 0
+        if "Light" in st.session_state.get("current_theme", ""):
+            current_idx = 1
+        elif "OLED" in st.session_state.get("current_theme", ""):
+            current_idx = 2
+
+        tc1, tc2 = st.columns([1, 1])
+        with tc2:
+            auth_theme = st.selectbox(
+                "Theme",
+                ["🌙 Cyber Dark Navy", "☀️ Clean High-Contrast Light", "⚡ OLED High-Contrast Black"],
+                index=current_idx,
+                key="auth_theme_select",
+                label_visibility="collapsed",
+            )
+            if auth_theme != st.session_state.get("current_theme"):
+                st.session_state["current_theme"] = auth_theme
+                st.rerun()
+
         st.markdown('<div class="pro-card">', unsafe_allow_html=True)
 
         tab_login, tab_signup, tab_demo = st.tabs(["🔐 Sign In", "📝 Create Account", "⚡ Judge Instant Access"])
@@ -153,7 +177,25 @@ def main():
             label_visibility="collapsed",
         )
 
-        st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
+        # Theme Switcher
+        st.markdown("<div style='font-size: 0.8rem; font-weight: 700; margin-bottom: 6px;'>🎨 DISPLAY THEME</div>", unsafe_allow_html=True)
+        current_idx = 0
+        if "Light" in st.session_state.get("current_theme", ""):
+            current_idx = 1
+        elif "OLED" in st.session_state.get("current_theme", ""):
+            current_idx = 2
+        theme_choice = st.selectbox(
+            "Display Theme",
+            ["🌙 Cyber Dark Navy", "☀️ Clean High-Contrast Light", "⚡ OLED High-Contrast Black"],
+            index=current_idx,
+            label_visibility="collapsed",
+            key="sidebar_theme_picker",
+        )
+        if theme_choice != st.session_state.get("current_theme"):
+            st.session_state["current_theme"] = theme_choice
+            st.rerun()
+
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
         st.markdown("---")
 
         # Telemetry Quick-Widget

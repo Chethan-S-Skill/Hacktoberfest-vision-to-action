@@ -35,18 +35,43 @@ def render_header(current_user: Optional[Dict[str, Any]] = None):
             email = current_user.get("email", "Authenticated User")
             is_demo = current_user.get("is_demo", False)
             mode_badge = (
-                '<span style="background: rgba(168,85,247,0.3); color: #E9D5FF; padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; border: 1px solid rgba(168,85,247,0.5);">SHOWCASE DEMO</span>'
+                '<span style="background: rgba(168,85,247,0.3); color: #C084FC; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(168,85,247,0.5);">DEMO</span>'
                 if is_demo
-                else '<span style="background: rgba(16,185,129,0.3); color: #A7F3D0; padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; border: 1px solid rgba(16,185,129,0.5);">SUPABASE LIVE</span>'
+                else '<span style="background: rgba(16,185,129,0.3); color: #34D399; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16,185,129,0.5);">LIVE</span>'
             )
-            st.markdown(
-                f"""
-                <div style="text-align: right; padding-top: 10px;">
-                    <div style="font-size: 0.95rem; font-weight: 600; color: #FFFFFF;">{email} {mode_badge}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            h_col1, h_col2 = st.columns([3, 2])
+            with h_col1:
+                st.markdown(
+                    f"""
+                    <div style="text-align: right; padding-top: 8px;">
+                        <div style="font-size: 0.88rem; font-weight: 700;">{email} {mode_badge}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            with h_col2:
+                current_idx = 0
+                active_th = st.session_state.get("current_theme", "")
+                if "Light" in active_th:
+                    current_idx = 1
+                elif "OLED" in active_th:
+                    current_idx = 2
+
+                h_theme = st.selectbox(
+                    "Theme Toggle",
+                    ["🌙 Dark", "☀️ Light", "⚡ OLED"],
+                    index=current_idx,
+                    label_visibility="collapsed",
+                    key="header_theme_selector",
+                )
+                theme_map = {
+                    "🌙 Dark": "Cyber Dark Navy",
+                    "☀️ Light": "Clean High-Contrast Light",
+                    "⚡ OLED": "OLED High-Contrast Black",
+                }
+                if theme_map.get(h_theme) != st.session_state.get("current_theme"):
+                    st.session_state["current_theme"] = theme_map.get(h_theme)
+                    st.rerun()
 
 
 def render_threat_badge(threat_level: str) -> str:
