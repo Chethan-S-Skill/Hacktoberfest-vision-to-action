@@ -1,0 +1,395 @@
+# ROLE AND MISSION
+
+Act as a senior full-stack software engineer, AI engineer, UI/UX designer, database architect, application security engineer, and QA engineer.
+
+Build a complete, functional, secure, production-minded hackathon application named **Reality → Action AI**.
+
+Do not behave like a tutor who only gives examples. Work directly in the project workspace when your tools allow it. Inspect existing files, implement the application, run it, test it, fix errors, and document the final setup.
+
+Do not claim a feature works unless you have actually tested it or clearly identify it as untested.
+
+## 1. PROJECT VISION
+
+Reality → Action AI transforms real-world visual understanding into practical, step-by-step guidance.
+
+A user uploads a photograph of an object, machine, electronic circuit, flowchart, diagram, equipment, or everyday problem. The AI analyzes the image, answers the user's question, explains what it can observe, and recommends useful next actions.
+
+Example:
+- User uploads a photo of a flowchart.
+- User asks: "Explain this flowchart and tell me what happens next."
+- The AI describes the visible structure, explains the logic, and provides numbered steps.
+
+The application must distinguish observations from assumptions, communicate uncertainty, and avoid unsafe instructions.
+
+Primary AI provider: Sarvam AI, using an image-capable Gemma 4 model available to the configured API account.
+
+Never silently substitute another AI model. If Gemma 4 is unavailable, show a useful error and document the alternative without falsely claiming that Gemma 4 processed the image.
+
+## 2. TARGET USERS
+
+Build for students, beginners, makers, technicians, and everyday users.
+
+The experience must be understandable without technical knowledge. The user must never be asked to provide an API key, database password, provider credential, or secret.
+
+## 3. TECHNOLOGY STACK
+
+Use the following stack unless a genuine compatibility issue requires a documented adjustment:
+
+- Language: Python 3.11 or a compatible installed version.
+- Frontend: Streamlit with custom CSS and reusable UI functions.
+- Backend: Python service modules separating UI, AI integration, and persistence.
+- AI: Sarvam AI API with an image-capable Gemma 4 model.
+- Authentication: Supabase Auth.
+- Database: Supabase PostgreSQL.
+- Database security: Row Level Security (RLS).
+- Image storage: Private Supabase Storage bucket.
+- Image processing: Pillow.
+- API integration: Official Sarvam Python SDK or documented HTTP API.
+- Configuration: Environment variables and Streamlit secrets for deployment.
+- Testing: pytest, mocks for external APIs, and appropriate integration tests.
+- Version control: Git and a public GitHub repository.
+- Deployment: Streamlit Community Cloud or another compatible hosting platform.
+
+Verify current SDK methods, model identifiers, image-input formats, authentication flows, and API limitations using official documentation. Do not invent API methods or assume beta access is enabled.
+
+## 4. USER INTERFACE AND EXPERIENCE
+
+Create a polished, premium, responsive interface suitable for a major hackathon demonstration.
+
+Design direction:
+- Deep navy background.
+- Electric blue and violet accents.
+- Modern typography and subtle gradients.
+- Rounded cards, accessible contrast, consistent spacing, and clean icons.
+- Professional microcopy, loading indicators, empty states, and clear error messages.
+- Responsive layout suitable for laptop and mobile screens.
+
+Main navigation:
+1. Home / Analyze
+2. History
+3. How It Works
+4. Account / Settings
+5. Sign out
+
+Dashboard:
+- Clear welcome heading and short explanation.
+- Drag-and-drop image uploader.
+- File picker with image preview.
+- Supported image formats and size limits.
+- Question input with useful example prompts.
+- Analyze & Get Guidance button.
+- Sample demonstration workflow using clearly labeled sample data.
+- Processing status and meaningful loading feedback.
+- Results area with structured AI guidance.
+
+Analysis results should include:
+1. What I can see.
+2. What it may mean.
+3. Step-by-step next actions.
+4. Safety considerations.
+5. Uncertainties and follow-up questions.
+
+Provide a button to start another analysis and a way to revisit the saved result.
+
+Do not display fake analytics, fake AI results, fake success messages, or fabricated user history. Clearly label sample demonstrations.
+
+## 5. AUTHENTICATION
+
+Implement real Supabase authentication.
+
+Required features:
+- Registration with email and password.
+- Login.
+- Logout.
+- Authentication state handling.
+- Password reset using a secure supported flow.
+- Clear validation and error messages.
+- Protected application pages.
+- Session persistence and secure session handling.
+- Appropriate handling of email verification requirements.
+
+Users must be able to use the application without seeing API credentials.
+
+Never store plaintext passwords in the application's own database. Delegate password handling to Supabase Auth.
+
+Do not build a fake login form that grants access without authenticating the user.
+
+## 6. DATABASE DESIGN
+
+Create version-controlled SQL migrations or a documented SQL schema.
+
+Required tables:
+
+### analysis_history
+- id: UUID primary key.
+- user_id: UUID foreign key referencing auth.users.
+- question: text.
+- image_path: nullable text.
+- ai_response: text or structured JSON.
+- model_name: text.
+- status: appropriate status representation if required.
+- created_at: timestamp with time zone.
+
+Add indexes for user_id and created_at.
+
+Use foreign keys, appropriate nullability, and sensible constraints.
+
+Enable RLS and enforce policies so authenticated users can read and delete only their own analyses and insert records only for their own authenticated identity.
+
+The application must derive user_id from the authenticated session, never from a user-editable input field.
+
+Use the authenticated user's Supabase session for database access. Never expose a service-role key or bypass RLS from the client.
+
+If the AI call fails, do not save a successful-looking result. Handle incomplete records explicitly if draft or failed states are implemented.
+
+## 7. PRIVATE IMAGE STORAGE
+
+Create a private storage bucket named reality-images.
+
+Requirements:
+- Upload images only for authenticated users.
+- Organize paths by authenticated user ID and unique file IDs.
+- Enforce storage policies that prevent cross-user access.
+- Validate MIME type, file extension, size, and actual image decoding.
+- Reject malformed and unsupported files.
+- Avoid exposing permanent public image URLs.
+- Use authenticated access or short-lived signed URLs where appropriate.
+- Do not log image contents, API keys, or sensitive information.
+- Explain image retention and deletion behavior.
+
+Deleting an analysis must also handle its stored image according to the application's retention policy. Avoid leaving orphaned files.
+
+## 8. GEMMA 4 IMAGE ANALYSIS
+
+Create a dedicated AI service module, for example ai_engine.py.
+
+The service must:
+1. Receive a validated image and user question.
+2. Call the documented Sarvam API with the correct image-capable Gemma 4 model.
+3. Use the correct SDK method and image payload format.
+4. Request structured, clear, actionable guidance.
+5. Parse and validate the response.
+6. Handle timeouts, rate limits, invalid credentials, unavailable models, and network errors.
+7. Return a predictable response structure to the frontend.
+8. Avoid exposing internal stack traces or credentials to users.
+
+Use a structured response with fields such as:
+- visual_observations
+- interpretation
+- next_steps
+- safety_notes
+- uncertainty
+- follow_up_questions
+
+If the provider returns plain text rather than structured output, parse it defensively or display it as text without pretending that parsing succeeded.
+
+Do not invent visual details. The model should explicitly say when something is unclear.
+
+Implement sensible timeouts and request limits. Avoid unnecessary repeated API calls.
+
+## 9. REAL-WORLD SAFETY AND RELIABILITY
+
+The application must not treat image interpretation as guaranteed truth.
+
+Implement:
+- Clear uncertainty indicators.
+- Safe guidance for electrical, mechanical, chemical, medical, and other high-risk contexts.
+- Recommendations to consult a qualified professional when appropriate.
+- No hazardous repair instructions based solely on an uncertain image.
+- No medical diagnosis based solely on image analysis.
+- Warnings against touching energized equipment or opening dangerous machinery.
+- A clear statement that important decisions should be independently verified.
+
+Do not allow model-generated content to execute automatically as code or system commands.
+
+## 10. ANALYSIS HISTORY
+
+Create a complete history experience.
+
+Features:
+- List the current user's previous analyses.
+- Show question, date, and a short answer preview.
+- Open a saved analysis and display its complete response.
+- Show its associated image securely when available.
+- Search or filter history where practical.
+- Delete a selected history item with confirmation.
+- Include loading, empty, and error states.
+- Refresh the data from Supabase rather than relying only on temporary in-memory state.
+
+Enforce ownership on every read, update, delete, and image access operation.
+
+Do not display another user's records under any circumstances.
+
+## 11. API KEY AND CONFIGURATION SECURITY
+
+For local development, use environment variables or a properly configured .env file.
+
+Required configuration:
+- SARVAM_API_KEY
+- SUPABASE_URL
+- SUPABASE_ANON_KEY or publishable key appropriate to the SDK.
+- Any additional variables genuinely required by the selected secure authentication architecture.
+
+Load local environment variables using a suitable configuration library such as python-dotenv.
+
+For deployment, configure secrets through the hosting platform's private secrets interface.
+
+Requirements:
+- Never place API keys in frontend components.
+- Never hardcode credentials in source code.
+- Never commit .env files.
+- Include .env.example with placeholder values only.
+- Include a correct .gitignore.
+- Never print secrets in logs or error messages.
+- Never expose a Supabase service-role key to the browser or ordinary user-facing code.
+- Explain that the Sarvam key remains on the trusted server side.
+
+## 12. PROJECT STRUCTURE
+
+Use a clear, maintainable structure similar to:
+
+reality-action-ai/
+├── app.py
+├── ai_engine.py
+├── auth.py
+├── database.py
+├── storage.py
+├── ui/
+│   ├── styles.py
+│   ├── components.py
+│   └── pages/
+│       ├── home.py
+│       ├── history.py
+│       └── account.py
+├── utils/
+│   ├── image_validation.py
+│   └── config.py
+├── supabase/
+│   └── migrations/
+├── tests/
+├── .env.example
+├── .gitignore
+├── requirements.txt
+├── README.md
+└── pytest.ini
+
+Adapt this structure only where necessary. Avoid unnecessary complexity for a one-day hackathon.
+
+## 13. ERROR HANDLING
+
+Every important operation must have clear failure handling.
+
+Examples:
+- No image uploaded.
+- Unsupported file.
+- Image too large.
+- Empty question.
+- User not authenticated.
+- Expired session.
+- Invalid API key.
+- Gemma 4 beta access unavailable.
+- Rate limit exceeded.
+- Network timeout.
+- Database unavailable.
+- Image upload failure.
+- History loading failure.
+
+Provide a helpful user-facing message and keep technical details in safe development logs.
+
+Do not display raw secrets, internal stack traces, or sensitive provider responses.
+
+## 14. TESTING REQUIREMENTS
+
+Create tests for:
+- Image validation.
+- Missing or invalid configuration.
+- AI response parsing.
+- AI provider errors.
+- Login and authentication flow where testable.
+- Database operations.
+- History ownership and authorization.
+- File upload restrictions.
+- Deletion behavior.
+- Empty states and error states.
+
+Mock external APIs for unit tests. Add integration tests only where real credentials and test services are available.
+
+Run:
+- Python compilation checks.
+- pytest.
+- Relevant lint or static checks if configured.
+- A local application smoke test.
+
+Fix discovered errors and rerun the relevant tests.
+
+Never claim a live provider integration, real authentication, or deployment works unless it has been verified.
+
+## 15. DEPLOYMENT AND GITHUB
+
+Prepare the project for deployment.
+
+Deliver:
+- requirements.txt with compatible dependencies.
+- Complete README with Windows setup instructions.
+- Supabase setup and SQL migration instructions.
+- Sarvam API configuration instructions.
+- Local run instructions.
+- Deployment instructions.
+- GitHub publishing instructions.
+- Security checklist.
+- Known limitations.
+
+The README must explain exactly how to:
+1. Create a virtual environment on Windows.
+2. Install dependencies.
+3. Configure secrets.
+4. Apply database migrations.
+5. Run the application.
+6. Test authentication and history.
+7. Deploy the application.
+
+Do not claim that the project is deployed or public unless deployment was completed and verified.
+
+## 16. IMPLEMENTATION WORKFLOW
+
+Follow this order:
+
+Phase 1: Inspect the existing repository and preserve useful existing work.
+
+Phase 2: Establish the working application structure and dependency configuration.
+
+Phase 3: Build the polished frontend and validate that it starts.
+
+Phase 4: Configure Supabase authentication, database schema, RLS, and private storage.
+
+Phase 5: Implement the Sarvam Gemma 4 integration using verified API documentation.
+
+Phase 6: Connect image analysis to the authenticated user workflow.
+
+Phase 7: Implement history, retrieval, and secure deletion.
+
+Phase 8: Add error handling and safety behavior.
+
+Phase 9: Run tests, fix issues, and perform a smoke test.
+
+Phase 10: Write the README and deployment guide.
+
+Do not stop after creating a static mockup. Prioritize a working vertical slice: register, sign in, upload an image, obtain real AI guidance, save the result, reopen history, and sign out.
+
+If time is limited, prioritize this core workflow before adding voice interaction, OCR enhancements, multilingual features, or decorative animations.
+
+## 17. FINAL DELIVERABLES
+
+When finished, provide:
+- The files created or modified.
+- The implemented features.
+- The database migrations and security policies.
+- The commands to run the application on Windows.
+- The tests executed and their actual results.
+- Any setup tasks requiring my manual action.
+- Any features that remain incomplete or unverified.
+- Exact instructions to publish the repository and deploy the application.
+
+Begin by inspecting the current workspace and identifying the existing setup. Then implement the first working milestone immediately. Ask questions only when an essential decision cannot safely be made from the existing project. Make reasonable, documented assumptions and continue working.
+
+The goal is a reliable, secure, polished, demonstrable real-world AI solution—not merely a visually impressive prototype.

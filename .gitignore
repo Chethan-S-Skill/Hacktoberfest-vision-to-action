@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Environment Variables & Secrets
+.env
+.env.local
+*.secret
+.streamlit/secrets.toml
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Supabase & Local Temp
+.supabase/
+temp_images/
+*.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
